@@ -7,17 +7,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from psycopg2.extras import execute_batch
 
-# ------------------- ISTRUZIONI DI SETUP -------------------
-# 1. Crea un file chiamato '.env' nella stessa cartella di questo script.
-# 2. Inserisci nel file .env le tue credenziali, in questo formato:
-#
-#    API_KEY="key_2ejiJ)al"
-#    DATABASE_URL="postgresql://dariocasavecchia:LA_TUA_PASSWORD@dariocasavecchia.postgres.database.azure.com:5432/postgres?sslmode=require"
-#
-#    ATTENZIONE: Sostituisci LA_TUA_PASSWORD con la password reale del tuo database.
-# -----------------------------------------------------------------
-
-# Carica le variabili d'ambiente dal file .env
+# Carica le variabili d'ambiente dal file .env (utile per i test locali)
 load_dotenv()
 
 # --- CONFIGURAZIONE GLOBALE ---
@@ -28,7 +18,7 @@ HEADERS = {'Authorization': f'Bearer {API_KEY}', 'Content-Type': 'application/js
 
 # --- VALIDAZIONE ---
 if not API_KEY or not DATABASE_URL:
-    print("!!! ERRORE CRITICO: Le variabili API_KEY e/o DATABASE_URL non sono state trovate nel file .env.")
+    print("!!! ERRORE CRITICO: Le variabili API_KEY e/o DATABASE_URL non sono state trovate. Assicurati di aver creato un file .env o di aver impostato i Secrets su GitHub.")
     exit()
 
 print(f"INFO: Script avviato. Utilizzo API Key che inizia con: '{API_KEY[:4]}...'")
@@ -138,13 +128,22 @@ def fetch_api_data(endpoint, params=None):
         return []
 
 def insert_data(conn, table_name, data, columns):
+    """
+    Funzione corretta per inserire i dati.
+    Usa un numero di segnaposto (%s) corretto per le colonne.
+    """
     if not data: return
     with conn.cursor() as cur:
+        # --- CORREZIONE APPLICATA QUI ---
         placeholders = ', '.join(['%s'] * len(columns))
-        sql = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES %s ON CONFLICT DO NOTHING"
-        execute_batch(cur, sql, data, page_size=500)
+        sql = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
+        
+        # Trasforma i dati in tuple prima dell'inserimento
+        data_to_insert = [tuple(rec) for rec in data]
+        
+        execute_batch(cur, sql, data_to_insert, page_size=500)
     conn.commit()
-    print(f"INFO: Inseriti {len(data)} record in '{table_name}'.")
+    print(f"INFO: Inseriti/Ignorati {len(data)} record in '{table_name}'.")
 
 # --- PIPELINE PRINCIPALE ---
 def run_pipeline():
