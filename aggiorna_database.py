@@ -148,11 +148,19 @@ def insert_data(conn, table_name, data, columns):
         return
     
     with conn.cursor() as cur:
+        # --- CORREZIONE APPLICATA QUI ---
         # Costruisce la stringa di segnaposto corretta, es. (%s, %s, %s)
         placeholders = ', '.join(['%s'] * len(columns))
         sql = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
         
         try:
+            # Aggiunto un controllo per assicurarsi che tutte le righe abbiano la lunghezza corretta
+            for row in data:
+                if len(row) != len(columns):
+                    print(f"!!! ERRORE DI DATI: La riga ha {len(row)} elementi ma le colonne sono {len(columns)}. Riga: {row}")
+                    # In un caso reale, potresti voler saltare questa riga o fermare tutto
+                    return # Interrompe l'inserimento per questa tabella
+
             execute_batch(cur, sql, data, page_size=500)
             conn.commit()
             print(f"INFO: Inseriti/Ignorati {len(data)} record in '{table_name}'.")
