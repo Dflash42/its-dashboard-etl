@@ -143,16 +143,23 @@ def insert_data(conn, table_name, data, columns):
     Funzione corretta per inserire i dati.
     Usa un numero di segnaposto (%s) corretto per le colonne.
     """
-    if not data: return
+    if not data:
+        print(f"INFO: Nessun dato da inserire per '{table_name}'.")
+        return
+    
     with conn.cursor() as cur:
-        # --- CORREZIONE APPLICATA QUI ---
+        # Costruisce la stringa di segnaposto corretta, es. (%s, %s, %s)
         placeholders = ', '.join(['%s'] * len(columns))
         sql = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
         
-        # execute_batch si aspetta una lista di tuple/liste
-        execute_batch(cur, sql, data, page_size=500)
-    conn.commit()
-    print(f"INFO: Inseriti/Ignorati {len(data)} record in '{table_name}'.")
+        try:
+            execute_batch(cur, sql, data, page_size=500)
+            conn.commit()
+            print(f"INFO: Inseriti/Ignorati {len(data)} record in '{table_name}'.")
+        except Exception as e:
+            print(f"!!! ERRORE durante l'esecuzione di execute_batch per la tabella {table_name}: {e}")
+            conn.rollback()
+
 
 # --- PIPELINE PRINCIPALE ---
 def run_pipeline():
