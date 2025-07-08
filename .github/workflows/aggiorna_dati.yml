@@ -1,0 +1,47 @@
+# Nome del tuo flusso di lavoro, apparirà nella scheda "Actions"
+name: Aggiornamento Dati Giornaliero ITS
+
+# Quando eseguire il flusso di lavoro
+on:
+  # Permette di lanciarlo manualmente dalla pagina Actions di GitHub
+  workflow_dispatch:
+  
+  # Esegue lo script in automatico a un orario prestabilito
+  schedule:
+    # Questa è una stringa "cron". '0 2 * * *' significa "Alle 02:00 del mattino, ogni giorno".
+    # L'orario è UTC (2 ore indietro rispetto all'Italia in estate).
+    - cron: '0 2 * * *'
+
+# Definizione dei "lavori" da eseguire
+jobs:
+  # Nome del lavoro (puoi chiamarlo come vuoi)
+  update-database:
+    # Il tipo di computer virtuale su cui eseguire il lavoro
+    runs-on: ubuntu-latest
+
+    # I passaggi che il computer virtuale eseguirà
+    steps:
+      # 1. Scarica il tuo codice dal repository
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      # 2. Imposta l'ambiente Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
+
+      # 3. Installa le librerie Python necessarie
+      - name: Installa le dipendenze
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests psycopg2-binary python-dotenv
+
+      # 4. Esegui lo script di importazione unificato
+      - name: Esegui lo script di aggiornamento completo
+        env:
+          # Inietta i segreti come variabili d'ambiente, così lo script li può leggere
+          API_KEY: ${{ secrets.API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        # Assicurati che il nome del file qui sotto corrisponda a quello che hai caricato
+        run: python aggiorna_database.py 
