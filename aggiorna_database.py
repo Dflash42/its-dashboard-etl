@@ -7,18 +7,6 @@ from dotenv import load_dotenv
 from datetime import datetime
 from psycopg2.extras import execute_batch
 
-# ------------------- ISTRUZIONI DI SETUP -------------------
-# 1. Crea un file chiamato '.env' nella stessa cartella di questo script per i test locali.
-# 2. Inserisci nel file .env le tue credenziali, in questo formato:
-#
-#    API_KEY="key_2ejiJ)al"
-#    DATABASE_URL="postgresql://dariocasavecchia:LA_TUA_PASSWORD@dariocasavecchia.postgres.database.azure.com:5432/postgres?sslmode=require"
-#
-#    ATTENZIONE: Sostituisci LA_TUA_PASSWORD con la password reale del tuo database.
-#    Quando eseguito su GitHub, queste variabili verranno prese dai "Secrets" del repository.
-# -----------------------------------------------------------------
-
-# Carica le variabili d'ambiente dal file .env (utile per i test locali)
 load_dotenv()
 
 # --- CONFIGURAZIONE GLOBALE ---
