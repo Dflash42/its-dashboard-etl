@@ -2,7 +2,6 @@ import requests
 import psycopg2
 import os
 import time
-import re
 from dotenv import load_dotenv
 from datetime import datetime
 from psycopg2.extras import execute_batch
